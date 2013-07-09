@@ -1,13 +1,29 @@
 <html>
 <head>
-<title>
+<title>Calisson Interactive
 </title>
 <link rel="stylesheet" type="text/css" href="css/calisson.css">
 </head>
 
 <body>
 <script src="js/fabric-all.js"></script>
+<script src="js/jquery.min.js"></script>
+
+<!-- Must follow 'jquery' and 'fabric' -->
 <script src="js/calisson.js"></script>
-<h1 class="main-header">Calisson</h1>
+
+
+<div class="canvas-wrapper" id="main-canvas-wrapper">
+	<canvas id="main-canvas" width="600px" height="600px">
+	</canvas>
+</div>
+
+<div id="header">
+  <h1 class="main-header">Calisson</h1>
+  <input type="checkbox" id="reload" checked="true">
+  <label for="reload">Auto-reload every </label><input id="reload-every" type="text" size=1>seconds
+</div>
+
+
 </body>
 </html>

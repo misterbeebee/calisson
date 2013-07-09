@@ -1,3 +1,15 @@
 h1 {
   font-family: sans-serif;
 }
+
+div.canvas-wrapper {
+  border: 1px solid #888;
+}
+
+div#main-canvas-wrapper {
+  float: left;
+}
+
+div#header {
+ float: right;
+}
