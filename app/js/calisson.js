@@ -29,7 +29,82 @@ var app = {
   // Id of interval-checking for new content to reload. 
   execution: null,
 
+  // Outputting object's coordinates (in console's log) every time object is moved
+  setupMouseEvents: function(canvas) {
+    canvas.on('object:moving', function(e) {
+      var activeObject = e.target;
+      console.log('Object moving:' + activeObject.get('left'), activeObject.get('top'));
+    });
+
+    canvas.on('object:over', function(e) {
+      var activeObject = e.target;
+      console.log('Object Hover:' + activeObject.get('left'), activeObject.get('top'));
+    });
+
+
+    // piggyback on `canvas.findTarget`, to fire "object:over" and "object:out" events
+    canvas.findTarget = (function(originalFn) {
+      return function() {
+        var target = originalFn.apply(this, arguments);
+        if (target) {
+          if (this._hoveredTarget !== target) {
+            canvas.fire('object:over', { target: target });
+            if (this._hoveredTarget) {
+              canvas.fire('object:out', { target: this._hoveredTarget });
+            }
+            this._hoveredTarget = target;
+          }
+        }
+        else if (this._hoveredTarget) {
+          canvas.fire('object:out', { target: this._hoveredTarget });
+          this._hoveredTarget = null;
+        }
+        return target;
+      };
+    })(canvas.findTarget);
+
+    //piggyback on mouseup for object mouseup
+    canvas._onMouseUp = (function(originalFn) {
+      return function(e) {
+        _this = canvas;
+        _this.__onMouseUp(e);
+        if (_this.getActiveObject()) {
+          _this.fire('object:mouseup', { target: _this.getActiveObject() }, e);  
+        }
+        removeListener = fabric.util.removeListener;
+        addListener = fabric.util.addListener;
+        
+        removeListener(fabric.document, 'mouseup', _this._onMouseUp);
+        fabric.isTouchSupported && removeListener(fabric.document, 'touchend', _this._onMouseUp);
+        
+        removeListener(fabric.document, 'mousemove', _this._onMouseMove);
+        fabric.isTouchSupported && removeListener(fabric.document, 'touchmove', _this._onMouseMove);
+
+        addListener(_this.upperCanvasEl, 'mousemove', _this._onMouseMove);
+        fabric.isTouchSupported && addListener(_this.upperCanvasEl, 'touchmove', _this._onMouseMove);
+      };
+    })(canvas.setActiveObject);
+  },
+ 
+  makeCanvas: function() {
+    return new fabric.Canvas('main-canvas', {
+      selection: false,
+      selectionColor: 'rgba(210, 210, 210, 0.3)',
+      selectionLineWidth: 2
+    });
+  },
+
+  makeGroup: function(members, config) {
+    return new fabric.Group(members, $.extend({
+        perPixelTargetFind : true,
+        hasControls : false,
+        hasBorders : false
+        }, config));
+  },
+
   call: function() { 
+    var canvas = app.makeCanvas();
+    app.setupMouseEvents(canvas);
     app.md5Path = $('input#md5path').val(),
     $.get(app.md5Path, function(data) { app.setMd5Sum(parseInt(data, 16)); });
     var red = "#a80000";
@@ -45,7 +120,9 @@ var app = {
           //hasBorders: true,
           //borderColor: black,
           width: diam,
-          height: diam * altitude
+          height: diam * altitude,
+          perPixelTargetFind: true,
+          hasControls: false
         }, config));
     }
   
@@ -58,7 +135,7 @@ var app = {
       var t1 = triangle($.extend($.extend({flipY: false, angle: 90}, internal), loco));
       var t2 = triangle($.extend($.extend({flipY: false, angle: -90},
       internal), cabo));
-      return new fabric.Group([t1,t2], external);
+      return app.makeGroup([t1,t2], external);
     } 
     function ca() {
       return calisson(
@@ -169,22 +246,22 @@ var app = {
             }
           }
       }
-  
+ 
       console.log("" + triangles.length + " triangles in grid");
       triangles.push(new fabric.Circle({ fill: 'red', radius: 5, width: 5}));
-      return new fabric.Group(triangles,  {top: gridConfig.top, left: gridConfig.left});
+      return app.makeGroup(triangles, {
+        selectable: false,
+        top: gridConfig.top,
+        left: gridConfig.left});
     }
   
-    var gridConfig = { 
+    app.gridConfig = { 
       top: 300,
       left: 300,
       radius: 6
     };
+    var gridConfig = app.gridConfig;
   
-    var canvas = new fabric.Canvas('main-canvas', {
-      selectionColor: '#888',
-      selectionLineWidth: 2
-    });
   
     function drawCorners() {
       // valid positions are those with (top+left)%2 == 1
