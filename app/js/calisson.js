@@ -33,12 +33,14 @@ var app = {
   setupMouseEvents: function(canvas) {
     canvas.on('object:moving', function(e) {
       var activeObject = e.target;
-      console.log('Object moving:' + activeObject.get('left'), activeObject.get('top'));
+      // just a demo
+      // console.log('Object moving:' + activeObject.get('left'), activeObject.get('top'));
     });
 
     canvas.on('object:over', function(e) {
       var activeObject = e.target;
-      console.log('Object Hover:' + activeObject.get('left'), activeObject.get('top'));
+      // just a demo
+      // console.log('Object Hover:' + activeObject.get('left'), activeObject.get('top'));
     });
 
 
