@@ -309,7 +309,7 @@ var app = {
     function main() {
       var timer = Math.max(5, $('input#reload-every').val());
       console.log('Checking for updates every ' + timer + ' seconds.');
-      execution = setInterval(app.maybeReload, timer * 1000);
+      app.execution = setInterval(app.maybeReload, timer * 1000);
       try {
         console.log('Calisson!');
         draw();
